@@ -1,0 +1,35 @@
+><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yrityksemme</title>
+</head>
+<body>
+    <H1>Tervetuloa sivuillemme!</H1>
+
+    <div id="sisältö"></div>
+
+    <script>
+
+        document.getElementById("sisältö").innerHTML = "<h4>Ladataan henkilötietoja...</h4>"
+
+        fetch("http://localhost:3000/api/henkilokunta")
+        .then(res => res.json())
+        .then(js => console.log (js))
+
+    </script>
+
+<p>Tee web toteutus, jossa node.js palvelinsovellus lähettää sitä kutsuvalle selaimelle kuvitteellisen yrityksen sivuston html, css ja selaimessa ajettavan javascript koodin</p> 
+    <p>Sivustossa on pääsivu, yritysesittely, yhteystiedot ja henkilökunnan tiedot min 3-5 työntekijää</p>
+    <p>Pääsivulla on yrityksen yleistä tietoa sekä linkit / napit muihin näkymiin</p>
+    <p>Html dokumentissa on yksi DIV, johon muiden sivujen sisältö tuodaan GetElementById:n perusteella.</p>
+    <p>Kun kutakin sivua kutsuvaa painiketta/linkkiä klikataan, tuodaankin esim. divi alue -kohtaan kulloinkin vaadittava tieto JavaScriptin avulla kovakoodatusta string muuttujasta joka sisältää html tägit.</p>
+    <p>Sivulle tarvittava sisältö rakennetaan DOM-päivityksellä</p>
+    <p>Todellisia/fyysisiä HTML -sivuja/tiedostoja on VAIN YKSI jolloin sivulta toiselle siirtyminen on todella nopeaa</p>
+    <p>Tuo henkilökunnan tiedot taulukkoon json tiedostosta siten että kun henkilökunnan tietosivulle mennään selainkoodi samalla kutsuu palvelinta pyytäen json datana henkilökunnan tiedot ja vastauksen saatuaan kirjoittaa sen taulukkoon. Tässä simuloidaan selaimen näkökulmasta sellaista tilannetta että tiedot tuotaisiin back-endin kautta tietokannasta ja lähetettäisiin jsonina, vaikka back-endin osalla oikaistaankin siinä, että luetaan ko. data vain .json päätteisestä tiedostosta eikä todellista tietokantayhteyttä ole, mutta selainkoodi ei sitä tiedä vaan se pyytää dataa ja saa dataa node sovellukselta.</p>
+
+
+
+</body>
+</html>
