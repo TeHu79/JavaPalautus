@@ -1,35 +1,153 @@
-><!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="fi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yrityksemme</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Yritys Oy</title>
+    <link rel="stylesheet" href="style.css"/>
 </head>
-<body>
-    <H1>Tervetuloa sivuillemme!</H1>
 
-    <div id="sisältö"></div>
+<body>
+    <h1 class="hidden" id="header">Yritys Oy</h1>
+
+    <h2 id="welcomeMessage">Tervetuloa sivuillemme!</h2>
+    <h3 id="pinMessage">Syötä pinkoodi kirjautuaksesi sivuillemme...</h3>
+
+    <div id="pin-div">
+        <input id="pin" placeholder="pin code" type="password" />
+        <button onclick="checkPin()">login</button>
+    </div>
+
+    <div id="main_alue">
+        <!-- Sisältö päivittyy tänne JavaScriptin avulla -->
+    </div>
+
+    <div class="hidden" id="sisältö">
+        <!-- Tämä h4-otsikko näkyy vain sisäänkirjautumisen jälkeen -->
+        <h4 id="introMessage">Kirjautuminen onnistui! Olet nyt valmis tutustumaan yrityksemme sivuille!</h4>
+    </div>
+
+    <br>
+
+    <div id="navigation">
+        <!-- Linkit / napit pääsivulle, yritysesittelyyn, yhteystietoihin ja henkilökunnan tietoihin -->
+        <button onclick="loadPage('pääsivu')">Pääsivu</button>
+        <button onclick="loadPage('yritysesittely')">Yritysesittely</button>
+        <button onclick="loadPage('yhteystiedot')">Yhteystiedot</button>
+        <button onclick="loadPage('henkilokunta')">Henkilökunta</button>
+    </div>
+
+    <br>
+
+    <button class="hidden" onclick="logOut()">Logout</button>
 
     <script>
+        const savedPin = localStorage.getItem("pinkoodi")
+        if (savedPin != null && savedPin != undefined) {
+            showElements()
+        }
 
-        document.getElementById("sisältö").innerHTML = "<h4>Ladataan henkilötietoja...</h4>"
+        // Kirjautumisen uloskirjautuminen
+        function logOut() {
+            localStorage.clear()
+            window.location.reload()
+        }
 
-        fetch("http://localhost:3000/api/henkilokunta")
-        .then(res => res.json())
-        .then(js => console.log (js))
+        // Pin-koodin tarkistus
+        async function checkPin() {
+            var pin = document.getElementById("pin").value
+            const response = await fetch("http://localhost:3000/api/getpin")
+            const correctPin = await response.json()
+
+            if (pin == correctPin) {
+                // Tallennetaan pinkoodi localStorageen
+                localStorage.setItem("pinkoodi", pin)
+                showElements()
+
+                // Piilotetaan tervetuloa- ja pin-viestit
+                document.getElementById("welcomeMessage").style.display = "none";
+                document.getElementById("pinMessage").style.display = "none";
+                document.getElementById("pin-div").style.display = "none";
+
+                // Näytetään navigointi ja sisältö
+                document.getElementById("navigation").style.display = "block";
+                document.getElementById("introMessage").style.visibility = "visible"; // Näytetään h4-otsikko
+            } else {
+                alert("Väärä pinkoodi")
+            }
+        }
+
+        // Näytetään elementit, kun käyttäjä on kirjautunut sisään
+        function showElements() {
+            var hiddenElements = document.getElementsByClassName("hidden")
+            for (i = 0; i < hiddenElements.length; i++) {
+                hiddenElements[i].style.visibility = "visible"
+            }
+            document.getElementById("pin-div").style.visibility = "hidden"
+        }
+
+        // Lataa sisältö käyttäjän klikkaamasta napista
+        function loadPage(page) {
+            let content = "";
+            if (page === "pääsivu") {
+                content = `
+                    <h2>Pääsivu</h2>
+                    <p>Tervetuloa Yritys Oy:n sivuille. Täällä voit tutustua yrityksemme palveluihin, yhteystietoihin ja henkilökuntaan.</p>
+                `;
+                document.getElementById("introMessage").style.visibility = "hidden"; // Piilotetaan h4-otsikko
+            } else if (page === "yritysesittely") {
+                content = `
+                    <h2>Yritysesittely</h2>
+                    <p>Yritys Oy on suomalainen yritys, joka tarjoaa laadukkaita palveluja eri toimialoilla. Meidän tiimimme on asiantunteva ja kokenut.</p>
+                `;
+                document.getElementById("introMessage").style.visibility = "hidden"; // Piilotetaan h4-otsikko
+            } else if (page === "yhteystiedot") {
+                content = `
+                    <h2>Yhteystiedot</h2>
+                    <p>Voit ottaa meihin yhteyttä seuraavasti:</p>
+                    <p>Puhelin: 012 345 6789</p>
+                    <p>Sähköposti: info@yritys.fi</p>
+                    <p>Osoite: Yrityksentie 1, 12345 Helsinki</p>
+                `;
+                document.getElementById("introMessage").style.visibility = "hidden"; // Piilotetaan h4-otsikko
+            } else if (page === "henkilokunta") {
+                // Henkilökunnan tietojen hakeminen
+                fetchData(); // Funktio, joka hakee henkilökunnan tiedot
+                return; // Estetään oletussisällön lisääminen, koska fetchData tekee sen
+            }
+
+            // Päivitetään pääsisällön div
+            document.getElementById("main_alue").innerHTML = content;
+            document.getElementById("introMessage").style.visibility = "hidden"; // Piilotetaan h4-otsikko
+        }
+
+        //------------------ Datan haku --------------------
+        async function fetchData() {
+            document.getElementById("main_alue").innerHTML = "<h4>Ladataan henkilökunnan tietoja...</h4>"
+
+            var x = `<table><thead><th>Nimi</th><th>Titteli</th></thead><tbody>`
+
+            try {
+                // Haetaan henkilökunnan tiedot palvelimelta
+                const response = await fetch("http://localhost:3000/api/henkilokunta")
+
+                const henkilokuntaData = await response.json() // muutetaan json => javascript-muotoon
+
+                // Käydään läpi henkilökunnan tiedot ja lisätään ne taulukkoon
+                await henkilokuntaData.map(h => {
+                    x += `<tr><td>${h.name}</td><td>${h.id}</td></tr>` // Korjattu sulkuvirhe
+                })
+
+                // Taulukko päätetään ja renderöidään html-elementtiin
+                x += `</tbody></table>`
+                document.getElementById("main_alue").innerHTML = x // Päivitetään pääsisällön div henkilökunnan taulukolla
+
+            } catch (error) {
+                console.error("Virhe datan haussa:", error)
+                document.getElementById("main_alue").innerHTML = "<p>Virhe henkilökunnan tietojen hakemisessa.</p>"
+            }
+        }
 
     </script>
-
-<p>Tee web toteutus, jossa node.js palvelinsovellus lähettää sitä kutsuvalle selaimelle kuvitteellisen yrityksen sivuston html, css ja selaimessa ajettavan javascript koodin</p> 
-    <p>Sivustossa on pääsivu, yritysesittely, yhteystiedot ja henkilökunnan tiedot min 3-5 työntekijää</p>
-    <p>Pääsivulla on yrityksen yleistä tietoa sekä linkit / napit muihin näkymiin</p>
-    <p>Html dokumentissa on yksi DIV, johon muiden sivujen sisältö tuodaan GetElementById:n perusteella.</p>
-    <p>Kun kutakin sivua kutsuvaa painiketta/linkkiä klikataan, tuodaankin esim. divi alue -kohtaan kulloinkin vaadittava tieto JavaScriptin avulla kovakoodatusta string muuttujasta joka sisältää html tägit.</p>
-    <p>Sivulle tarvittava sisältö rakennetaan DOM-päivityksellä</p>
-    <p>Todellisia/fyysisiä HTML -sivuja/tiedostoja on VAIN YKSI jolloin sivulta toiselle siirtyminen on todella nopeaa</p>
-    <p>Tuo henkilökunnan tiedot taulukkoon json tiedostosta siten että kun henkilökunnan tietosivulle mennään selainkoodi samalla kutsuu palvelinta pyytäen json datana henkilökunnan tiedot ja vastauksen saatuaan kirjoittaa sen taulukkoon. Tässä simuloidaan selaimen näkökulmasta sellaista tilannetta että tiedot tuotaisiin back-endin kautta tietokannasta ja lähetettäisiin jsonina, vaikka back-endin osalla oikaistaankin siinä, että luetaan ko. data vain .json päätteisestä tiedostosta eikä todellista tietokantayhteyttä ole, mutta selainkoodi ei sitä tiedä vaan se pyytää dataa ja saa dataa node sovellukselta.</p>
-
-
-
 </body>
 </html>
